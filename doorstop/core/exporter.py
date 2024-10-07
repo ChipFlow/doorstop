@@ -45,6 +45,7 @@ def export(obj, path, ext=None, **kwargs):
 
     # Export documents
     count = 0
+    docs = []
     for obj2, path2 in iter_documents(obj, path, ext):
         count += 1
 
@@ -56,11 +57,13 @@ def export(obj, path, ext=None, **kwargs):
             common.write_lines(lines, path2, end=settings.WRITE_LINESEPERATOR)
         else:
             export_file(obj2, path2, ext, **kwargs)
+        docs.append(path2)
 
     # Return the exported path
     if count:
-        msg = "exported to {} file{}".format(count, "s" if count > 1 else "")
+        msg = "exported to {} file{}:".format(count, "s" if count > 1 else "")
         log.info(msg)
+        log.info(", ".join(docs))
         return path
     else:
         log.warning("nothing to export")
