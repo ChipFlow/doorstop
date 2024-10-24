@@ -3,7 +3,6 @@
 """Functions to export documents and items."""
 
 import datetime
-import logging
 import os
 
 from collections import defaultdict
@@ -309,7 +308,7 @@ def _get_xlsx(obj, path, auto):
         first_sheet = _add_xlsx_sheet(workbook, obj, auto)
 
     log.debug(f"xlsx export: First sheet is {first_sheet}")
-    assert first_sheet != None
+    assert first_sheet is not None
     workbook.active = first_sheet
 
     return workbook
@@ -331,7 +330,7 @@ def _add_xlsx_sheet(workbook, obj, auto):
 
     log.debug(f"xls export: Created worksheet {worksheet.title}")
 
-    log.debug(f"xls export: populating cells")
+    log.debug("xls export: populating cells")
     # Populate cells
     for row, data in enumerate(_tabulate(obj, auto=auto), start=1):
         log.debug(f"xls export: row={row}, data={data}")

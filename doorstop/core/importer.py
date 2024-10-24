@@ -204,6 +204,13 @@ def _load_xlsx(document, worksheet, mapping):
 
     header = []
     data = []
+
+    # Parse the file
+    log.debug("reading rows in {}...".format(path))
+    workbook = openpyxl.load_workbook(path, data_only=True)
+    worksheet = workbook.active
+
+    log.debug(f"xlsx import: importing sheet {worksheet.title} in workbook {workbook}")
     index = 0
 
     # Extract header and data rows
@@ -255,7 +262,7 @@ def _file_xlsx(path, document, mapping=None, tree=None, **_):
         documents = []
         for worksheet in workbook.worksheets:
             if worksheet.title == "Document Properties":
-                #TODO
+                # TODO
                 continue
             log.info(f"checking sheet {worksheet.title}...")
             document = _check_doc(tree, worksheet, workbook)
@@ -368,6 +375,7 @@ FORMAT_FILE = {
 }
 
 FORMAT_TREE = {".xlsx": True}
+
 
 def check(ext):
     """Confirm an extension is supported for import.
