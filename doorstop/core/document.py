@@ -193,7 +193,23 @@ class Document(BaseValidatable, BaseFileObject):  # pylint: disable=R0902
         return self._load(text, yamlfile, loader=IncludeLoader)
 
     @property
-    def set_properties(self, data):
+    def settings(self) -> dict:
+        """
+        Document settings as a dict
+        """
+        sets = {}
+        for key, value in self._data.items():
+            if key == "prefix":
+                sets[key] = str(value)
+            elif key == "parent":
+                if value:
+                    sets[key] = value
+            else:
+                sets[key] = value
+        return sets
+
+    @settings.setter
+    def settings(self, settings: dict):
         def fill_key(key, value):
             match key:
                 case "prefix":
@@ -210,17 +226,29 @@ class Document(BaseValidatable, BaseFileObject):  # pylint: disable=R0902
                     msg = f"unexpected document setting '{key}' in: {self.config}"
                     raise DoorstopError(msg)
 
-        # Store parsed data
-        sets = data.get("settings", {})
-        for key, value in sets.items():
+        for key, value in settings.items():
             try:
                 fill_key(key, value)
             except (AttributeError, TypeError, ValueError):
                 msg = f"invalid value for '{key}' in: {self.config}"
                 raise DoorstopError(msg)
 
+    @property
+    def attributes(self):
+        """
+        Document attributes as a dict
+        """
+        # Save the attributes
+        attributes = {}
+        if self._attribute_defaults:
+            attributes["defaults"] = self._attribute_defaults
+        if self._extended_reviewed:
+            attributes["reviewed"] = self._extended_reviewed
+        return attributes
+
+    @attributes.setter
+    def attributes(self, attributes):
         # Store parsed attributes
-        attributes = data.get("attributes", {})
         for key, value in attributes.items():
             if key == "defaults":
                 self._attribute_defaults = value
@@ -234,49 +262,32 @@ class Document(BaseValidatable, BaseFileObject):  # pylint: disable=R0902
                 )
                 raise DoorstopError(msg)
 
-        self.extensions = data.get("extensions", {})
-
     def load(self, reload=False):
         """Load the document's properties from its file."""
         if self._loaded and not reload:
             return
         log.debug("loading {}...".format(repr(self)))
         data = self._load_with_include(self.config)
-        self._load_from_dict(data, reload)
+        self.settings = data["settings"] if "settings" in data else {}
+        self.attributes = data["attributes"] if "attributes" in data else {}
+        self.extensions = data.get("extensions", {})
         # Set meta attributes
         self._loaded = True
         if reload:
             list(self._iter(reload=reload))
 
-    @property
-    def properties(self):
-        data = {}
-        sets = {}
-        for key, value in self._data.items():
-            if key == "prefix":
-                sets[key] = str(value)
-            elif key == "parent":
-                if value:
-                    sets[key] = value
-            else:
-                sets[key] = value
-        data["settings"] = sets
-        # Save the attributes
-        attributes = {}
-        if self._attribute_defaults:
-            attributes["defaults"] = self._attribute_defaults
-        if self._extended_reviewed:
-            attributes["reviewed"] = self._extended_reviewed
-        if attributes:
-            data["attributes"] = attributes
-        return data
-
     @edit_document
     def save(self):
         """Save the document's properties to its file."""
         log.debug("saving {}...".format(repr(self)))
-       # Dump the data to YAML
-        text = self._dump(self.properties)
+
+        data = {}
+        if self.settings:
+            data["settings"] = self.settings
+        if self.attributes:
+            data["attributes"] = self.attributes
+
+        text = self._dump(data)
         # Save the YAML to file
         self._write(text, self.config)
         # Set meta attributes
