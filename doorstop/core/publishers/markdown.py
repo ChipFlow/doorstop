@@ -46,6 +46,11 @@ class MarkdownPublisher(BasePublisher):
         else:
             log.warning("no files for {}".format(index))
 
+        # Source control status
+        if tree:
+            common.write_text(" # Source Control Status", path)
+            common.write_text(tree.vcs.describe(), path)
+
     def _index_tree(self, tree, depth):
         """Recursively generate markdown index.
 
@@ -63,7 +68,7 @@ class MarkdownPublisher(BasePublisher):
         yield " " * (depth * 2 - 1) + f"* [{prefix}]({filename}) - {title}"
         # yield self.table_of_contents(linkify=True, obj=tree.document, depth=depth, heading=False)
         for child in tree.children:
-            yield from self._index_tree(tree=child, depth=depth)
+            yield from self._index_tree(child, filenames, depth=depth)
 
     def lines_index(self, filenames, tree=None):
         """Yield lines of Markdown for index.md.
