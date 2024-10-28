@@ -31,16 +31,16 @@ class MarkdownPublisher(BasePublisher):
 
         """
         # Get paths for the index index
-        filenames = []
+        filenames = set()
         for filename in os.listdir(directory):
             if filename.endswith(extensions) and filename != INDEX:
-                filenames.append(os.path.join(filename))
+                filenames.add(os.path.join(filename))
 
         # Create the index
         if filenames:
             path = os.path.join(directory, index)
             log.info("creating an {}...".format(index))
-            lines = self.lines_index(sorted(filenames), tree=tree)
+            lines = self.lines_index(filenames, tree=tree)
             common.write_text(" # Requirements index", path)
             common.write_text("\n".join(lines), path)
         else:
@@ -51,7 +51,7 @@ class MarkdownPublisher(BasePublisher):
             common.write_text(" # Source Control Status", path)
             common.write_text(tree.vcs.describe(), path)
 
-    def _index_tree(self, tree, depth):
+    def _index_tree(self, tree, filenames, depth=0):
         """Recursively generate markdown index.
 
         :param tree: optional tree to determine index structure
@@ -64,20 +64,22 @@ class MarkdownPublisher(BasePublisher):
         prefix = extract_prefix(tree.document)
         filename = f"{prefix}.md"
 
+        filenames.remove(filename)
+
         # Tree structure
         yield " " * (depth * 2 - 1) + f"* [{prefix}]({filename}) - {title}"
         # yield self.table_of_contents(linkify=True, obj=tree.document, depth=depth, heading=False)
         for child in tree.children:
             yield from self._index_tree(child, filenames, depth=depth)
 
-    def lines_index(self, filenames, tree=None):
+    def lines_index(self, filenames: set, tree=None):
         """Yield lines of Markdown for index.md.
 
         :param filenames: list of filenames to add to the index
         :param tree: optional tree to determine index structure
         """
         if tree:
-            yield from self._index_tree(tree, depth=0)
+            yield from self._index_tree(tree, filenames)
 
         # Additional files
         if filenames:
