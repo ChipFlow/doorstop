@@ -192,9 +192,9 @@ def _check_doc(tree, worksheet, workbook):
     try:
         document = tree.find_document(prefix)
     except DoorstopError:
-        log.warn(f"no matching document found for sheet {worksheet.title}. "
-                 f"If you wish to import this, first create a document "
-                 f"with the prefix {prefix}")
+        log.warning(f"no matching document found for sheet {worksheet.title}. "
+                    f"If you wish to import this, first create a document "
+                    f"with the prefix {prefix}")
         return None
     return document
 
