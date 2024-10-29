@@ -33,4 +33,4 @@ class WorkingCopy(BaseWorkingCopy):
         self.call("git", "push")
 
     def describe(self):
-        return "git: " + self.call("git", "describe", "--dirty", return_stdout=True)
+        return "git: " + self.call("git", "describe", "--dirty", "--all", "--long", return_stdout=True)
