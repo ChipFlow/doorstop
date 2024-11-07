@@ -13,6 +13,7 @@ import yaml
 
 from doorstop import common, settings
 from doorstop.common import DoorstopError
+from doorstop.core.document import Document
 from doorstop.core.types import iter_documents, iter_items, is_tree
 
 LIST_SEP = "\n"  # string separating list values when joined in a string
