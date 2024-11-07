@@ -278,11 +278,14 @@ def _add_properties_sheet(wb, tree, document_properties):
         "attributes key",
         "attributes value",
         ])
-    for prefix, data in document_properties.items():
-        for set_k, set_v in data["settings"].items():
-            sheet.append([prefix, repr(set_k), repr(set_v)])
-        for attr_k, attr_v in data["attributes"].items():
-            sheet.append([prefix, "", "", repr(attr_k), repr(attr_v)])
+    try:
+        for prefix, data in document_properties.items():
+            for set_k, set_v in data["settings"].items():
+                sheet.append([prefix, repr(set_k), repr(set_v)])
+            for attr_k, attr_v in data["attributes"].items():
+                sheet.append([prefix, "", "", repr(attr_k), repr(attr_v)])
+    except KeyError:
+        pass
 
 
 def _get_xlsx(obj, path, auto):
@@ -296,7 +299,7 @@ def _get_xlsx(obj, path, auto):
         document_properties = {}
         log.debug("xlsx export: exporting tree")
         for obj2, path2 in iter_documents(obj, path, ".xlsx"):
-            assert obj2 is Document
+            log.debug(f"in _get_xlsx, obj2 at {path2} is {type(obj2)}")
             sheet = _add_xlsx_sheet(workbook, obj2, auto)
             first_sheet = sheet or first_sheet
             document_properties[obj2.prefix] = obj2.save_to_dict()
