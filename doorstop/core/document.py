@@ -262,12 +262,7 @@ class Document(BaseValidatable, BaseFileObject):  # pylint: disable=R0902
                 )
                 raise DoorstopError(msg)
 
-    def load(self, reload=False):
-        """Load the document's properties from its file."""
-        if self._loaded and not reload:
-            return
-        log.debug("loading {}...".format(repr(self)))
-        data = self._load_with_include(self.config)
+    def load_from_dict(self, data, reload=False):
         self.settings = data["settings"] if "settings" in data else {}
         self.attributes = data["attributes"] if "attributes" in data else {}
         self.extensions = data.get("extensions", {})
@@ -276,17 +271,30 @@ class Document(BaseValidatable, BaseFileObject):  # pylint: disable=R0902
         if reload:
             list(self._iter(reload=reload))
 
-    @edit_document
-    def save(self):
-        """Save the document's properties to its file."""
-        log.debug("saving {}...".format(repr(self)))
+    def load(self, reload=False):
+        """Load the document's properties from its file."""
+        if self._loaded and not reload:
+            return
+        log.debug("loading {}...".format(repr(self)))
+        data = self._load_with_include(self.config)
+        self.load_from_dict(data, reload)
 
+    def save_to_dict(self):
         data = {}
         if self.settings:
             data["settings"] = self.settings
         if self.attributes:
             data["attributes"] = self.attributes
+        if self.extensions:
+            data["extenstions"] = self.extensions
+        return data
 
+    @edit_document
+    def save(self):
+        """Save the document's properties to its file."""
+        log.debug("saving {}...".format(repr(self)))
+
+        data = self.save_to_dict()
         text = self._dump(data)
         # Save the YAML to file
         self._write(text, self.config)

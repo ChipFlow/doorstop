@@ -295,12 +295,10 @@ def _get_xlsx(obj, path, auto):
         document_properties = {}
         log.debug("xlsx export: exporting tree")
         for obj2, path2 in iter_documents(obj, path, ".xlsx"):
+            assert obj2 is Document
             sheet = _add_xlsx_sheet(workbook, obj2, auto)
             first_sheet = sheet or first_sheet
-            document_properties[obj2.prefix] = {
-                    "settings": obj2.settings,
-                    "attributes": obj2.attributes
-                    }
+            document_properties[obj2.prefix] = obj2.save_to_dict()
         if document_properties:
             _add_properties_sheet(workbook, obj, document_properties)
     else:
